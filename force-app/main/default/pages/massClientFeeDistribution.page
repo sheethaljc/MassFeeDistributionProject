@@ -1,0 +1,16 @@
+<apex:page>
+    <apex:includeLightning/>
+    <div id="lightningComponentContainer" />
+    <script>
+        $Lightning.use("c:massClientFeeDistributionApp", function(){
+            $Lightning.createComponent("c:massClientFeeDistribution", {}, "lightningComponentContainer",
+                function(cmp){
+                console.log("LWC created");
+                }
+            );
+        });
+    </script>
+
+
+
+</apex:page>
