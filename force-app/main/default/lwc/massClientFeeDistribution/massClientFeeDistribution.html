@@ -1,93 +1,72 @@
 <template>
     <lightning-card title="Mass Client Fee Distribution" icon-name="standard:account">
         <div class="slds-p-around_medium">
+            <!-- Main Form Fields -->
+            <lightning-input label="Classification Code" name="classificationCode" required value={classificationCode} onchange={handleInputChange}></lightning-input>
+            <lightning-combobox name="productCode" label="Product Code" value={productCode} placeholder="Select Product" options={productOptions} onchange={handleInputChange} required></lightning-combobox>
+            <lightning-combobox name="feeType" label="Fee Type" value={feeType} placeholder="Select Fee Type" options={feeTypeOptions} onchange={handleInputChange} required></lightning-combobox>
+            <lightning-input type="date" name="endDateOpen" label="End date for open allocations" value={endDateOpen} onchange={handleInputChange}></lightning-input>
+            <lightning-input type="date" name="startDateNew" label="Start date for new allocations" required value={startDateNew} onchange={handleInputChange}></lightning-input>
+            <lightning-input type="date" name="endDateNew" label="End date for new allocations" value={endDateNew} onchange={handleInputChange}></lightning-input>
+            <lightning-input type="number" name="feeAmountEnd" formatter="currency" label="Fee amount for which allocations to be ended" value={feeAmountEnd} onchange={handleInputChange}></lightning-input>
+            <lightning-input type="number" name="feeAmountNew" formatter="currency" label="Fee amount for which allocations to be created" required value={feeAmountNew} onchange={handleInputChange}></lightning-input>
 
-            <lightning-input label="Classification Code" required value={classificationCode}
-                onchange={handleInputChange}></lightning-input>
-            <lightning-combobox name="productCode" label="Product Code" value={productCode} placeholder="Select Product"
-                options={productOptions} onchange={handleInputChange} required></lightning-combobox>
-            <lightning-combobox name="feeType" label="Fee Type" value={feeType} placeholder="Select Fee Type"
-                options={feeTypeOptions} onchange={handleInputChange} required></lightning-combobox>
-            <lightning-input type="date" label="End date for open allocations" value={endDateOpen}
-                onchange={handleInputChange}></lightning-input>
-            <lightning-input type="date" label="Start date for new allocations" required value={startDateNew}
-                onchange={handleInputChange}></lightning-input>
-            <lightning-input type="date" label="End date for new allocations" value={endDateNew}
-                onchange={handleInputChange}></lightning-input>
-            <lightning-input type="number" label="Fee amount for which allocations to be ended" value={feeAmountEnd}
-                onchange={handleInputChange}></lightning-input>
-            <lightning-input type="number" label="Fee amount for which allocations to be created" required
-                value={feeAmountNew} onchange={handleInputChange}></lightning-input>
+            <lightning-button label="New Payee Distribution" onclick={openModal} class="slds-m-top_medium"></lightning-button>
 
-            <lightning-button label="New Payee Distribution" onclick={openModal}
-                class="slds-m-top_medium"></lightning-button>
-
+            <!-- Data Table -->
             <template if:true={payeeDistributions.length}>
-
                 <div class="slds-m-top_medium">
-                    <lightning-datatable key-field="index" data={payeeDistributions} columns={columns}
-                        onrowaction={handleRowAction} hide-checkbox-column>
-
+                    <lightning-datatable key-field="index" data={payeeDistributions} columns={columns} onrowaction={handleRowAction} hide-checkbox-column>
                     </lightning-datatable>
                     <div class="slds-grid slds-grid_align-end slds-m-top_small">
                         <div class="slds-col">
-                            <strong>Grand Total:</strong> {totalAllocation}
+                            <strong>Grand Total:</strong>
+                            <lightning-formatted-number value={totalAllocation} format-style="percent-fixed" maximum-fraction-digits="2"></lightning-formatted-number>
                         </div>
                     </div>
-
                 </div>
             </template>
-
-
-
         </div>
 
+        <!-- Main Footer Buttons -->
         <div slot="footer">
             <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
-            <lightning-button variant="brand" label="Submit" onclick={handleSubmit}
-                class="slds-m-left_x-small"></lightning-button>
-
+            <lightning-button variant="brand" label="Submit" onclick={handleSubmit} class="slds-m-left_x-small"></lightning-button>
         </div>
     </lightning-card>
 
+    <!-- Modal Section -->
     <template if:true={isModalOpen}>
-        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
-            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
-                <header class="slds-modal__header">
-                    <!-- When this button is clicked, it calls the 'closeModal' function from the JavaScript file -->
-                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
-                        title="Close" onclick={closeModal}>
-                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
-                            size="small"></lightning-icon>
-                        <span class="slds-assistive-text">Close</span>
-                    </button>
+                <!-- We are using lightning-record-edit-form to handle the saving of the record. -->
+                <!-- The onsuccess handler is the key to getting the result after a successful save. -->
+                <lightning-record-edit-form object-api-name="Payee_Distribution__c" onsuccess={handleSuccess} onsubmit={handleSubmitInModal}>
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 class="slds-text-heading_medium slds-hyphenate">Payee Distribution</h2>
+                    </header>
 
-                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Payee Distribution</h2>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <!-- This message will be displayed if there's an error on save -->
+                        <lightning-messages></lightning-messages>
 
-                </header>
-                <lightning-record-edit-form object-api-name="Payee_Distribution__c">
-
-                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
-
-                        <lightning-input-field field-name="Payee__c" value={currentPayee.payeeId}
-                            onchange={handlePayeeLookupChange} required></lightning-input-field>
-                        <lightning-input-field field-name="Allocation_Percentage__c	" label="Allocation Percentage"
-                            value={currentPayee.allocationPercentage} onchange={handlePayeeInputChange}
-                            required></lightning-input-field>
-
+                        <!-- These input fields are directly linked to the Payee_Distribution__c object -->
+                        <lightning-input-field field-name="Payee__c" required onchange={handlePayeeLookupChange}></lightning-input-field>
+                        <lightning-input-field field-name="Allocation_Percentage__c" required onchange={handleAllocationChange}></lightning-input-field>
                     </div>
+
                     <footer class="slds-modal__footer">
-                        <lightning-button class="slds-button slds-button_neutral">Close</lightning-button>
-                        <lightning-button class="slds-button slds-button_brand" type="submit" label="Submit" onclick={submitAction}></lightning-button>
+                        <lightning-button label="Close" onclick={closeModal} class="slds-button_neutral"></lightning-button>
+                        <!-- This button's type="submit" will automatically trigger the form's onsubmit and onsuccess handlers -->
+                        <lightning-button variant="brand" type="submit" label="Submit"></lightning-button>
                     </footer>
                 </lightning-record-edit-form>
-
             </div>
         </section>
-        <!-- Added the modal backdrop. This creates the greyed-out background effect. -->
-
         <div class="slds-backdrop slds-backdrop_open"></div>
-
     </template>
 </template>
