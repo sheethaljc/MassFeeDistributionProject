@@ -12,7 +12,7 @@ public with sharing class PayeeDistributionWrapper {
     @AuraEnabled
     public String payeeNumber { get; set;}
     @AuraEnabled
-    public String payeeDistributionRecordId { get; set; } // ADD THIS LINE: To store the Payee_Distribution__c ID
+    public String payeeDistributionRecordId { get; set; } // To store the Payee_Distribution__c ID
 
     public PayeeDistributionWrapper() {
         // This constructor is required for Salesforce to deserialize the object
@@ -26,13 +26,13 @@ public with sharing class PayeeDistributionWrapper {
         String payeeId,
         Decimal allocationPercentage,
         String payeeNumber,
-        String payeeDistributionRecordId) { // ADD THIS PARAMETER
+        String payeeDistributionRecordId) { 
 
         this.index = index;
         this.payeeName = payeeName;
         this.payeeId = payeeId;
         this.allocationPercentage = allocationPercentage;
         this.payeeNumber = payeeNumber;
-        this.payeeDistributionRecordId = payeeDistributionRecordId; // ASSIGN IT
+        this.payeeDistributionRecordId = payeeDistributionRecordId;
     }
 }

@@ -61,38 +61,6 @@ public with sharing class MassClientFeeDistributionController {
     }
 
     /**
-     * This method is called from the modal's record-edit-form.
-     * It saves a single Payee_Distribution__c record and returns a wrapper
-     * object with all the necessary details to display in the UI data table.
-     * NOTE: This method is not directly used in the current LWC HTML/JS based on recent changes.
-     * The LWC now directly submits the lightning-record-edit-form, and then calls getPayeeDistributionWrapper.
-     * Keeping it here for completeness if it's used elsewhere or re-introduced.
-     */
-    @AuraEnabled
-    public static PayeeDistributionWrapper saveSinglePayeeDistribution(Payee_Distribution__c payeeDistribution, Integer index) {
-        // You can add server-side validation here if needed
-        System.debug('saveSinglePayeeDistribution: ' + JSON.serialize(payeeDistribution));
-        // Insert the record
-        dao.insertPayeeDistribution(payeeDistribution);
-
-        // After inserting, we need the Payee's Name and Number for the UI table.
-        // The record only contains the ID, so we query for the details.
-        Account payeeAccount = dao.getAccountById(payeeDistribution.Payee__c);
-
-        System.debug('payeeAccount: ' + JSON.serialize(payeeAccount));
-
-        // Return a wrapper object that the LWC can easily use to display the new row
-        return new PayeeDistributionWrapper(
-            index,
-            payeeAccount.Name,
-            String.valueOf(payeeAccount.Id), // Explicitly convert Id to String
-            payeeDistribution.Allocation_Percentage__c,
-            payeeAccount.AccountNumber,
-            String.valueOf(payeeDistribution.Id) // Id of the newly inserted Payee_Distribution__c
-        );
-    }
-
-    /**
      * This is the final submission method that processes the mass client fee distribution.
      * It will now UPDATE the previously created Payee_Distribution__c records
      * with the main form's data.

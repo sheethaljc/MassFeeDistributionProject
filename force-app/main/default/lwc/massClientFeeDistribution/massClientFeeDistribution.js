@@ -2,6 +2,7 @@ import { LightningElement, track, wire } from 'lwc';
 import getInitialData from '@salesforce/apex/MassClientFeeDistributionController.getInitialData';
 import processDistributions from '@salesforce/apex/MassClientFeeDistributionController.processDistributions';
 import getPayeeDistributionWrapper from '@salesforce/apex/MassClientFeeDistributionController.getPayeeDistributionWrapper';
+import acccountId from "@salesforce/schema/Account.Id";
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const columns = [
@@ -19,9 +20,7 @@ export default class MassClientFeeDistribution extends LightningElement {
     @track feeType = '';
     @track startDateNew = null;
     @track endDateNew = null;
-    @track endDateOpen = null;
     @track feeAmountNew = null;
-    @track feeAmountEnd = null;
 
     // Table and modal properties
     @track payeeDistributions = [];
@@ -30,6 +29,8 @@ export default class MassClientFeeDistribution extends LightningElement {
     @track isModalOpen = false;
     @track columns = columns;
     @track totalAllocation = 0;
+    @track modalErrorMessage = ''; // To show error Message in modal window
+
 
     // Properties to hold data for the current modal submission
     currentAllocationValue = 0;
@@ -57,10 +58,14 @@ export default class MassClientFeeDistribution extends LightningElement {
         // Reset temporary values for the new modal entry
         this.currentAllocationValue = 0;
         this.currentPayeeId = null;
+        this.modalErrorMessage = '';
+
     }
 
     closeModal() {
         this.isModalOpen = false;
+        this.modalErrorMessage = '';
+
     }
 
     // --- Modal and Record-Edit-Form Handlers ---
@@ -81,20 +86,22 @@ export default class MassClientFeeDistribution extends LightningElement {
 
         event.preventDefault(); // Stop the standard form submission
 
-        // --- Custom Validation ---
+        this.modalErrorMessage = '';
+        const newAllocation = parseFloat(this.currentAllocationValue) || 0;
+
+        // FIX: Instead of calling showToast, set the modalErrorMessage property
         if (!this.currentPayeeId) {
-            console.log('Error', 'You must select a Payee.', 'error');
+            this.modalErrorMessage = 'You must select a Payee.';
             return;
         }
-        const newAllocation = parseFloat(this.currentAllocationValue) || 0;
         if (newAllocation <= 0) {
-            console.log('Error', 'Allocation Percentage must be a positive number.', 'error');
+            this.modalErrorMessage = 'Allocation Percentage must be a positive number.';
             return;
         }
         console.log('New Allocation:', newAllocation);
         console.log('Current Allocation:', this.totalAllocation);
         if ((this.totalAllocation + newAllocation) > 100) {
-            console.log('Error : Total allocation cannot exceed 100%.');
+            this.modalErrorMessage = 'Total allocation cannot exceed 100%.';
             return;
         }
 
@@ -190,7 +197,7 @@ export default class MassClientFeeDistribution extends LightningElement {
             payeeDistributions: this.payeeDistributions
         })
         .then(() => {
-                console.log('Handle Submit Success');
+            console.log('Handle Submit Success');
             this.showToast('Success', 'Mass Client Fee Distributions have been submitted for processing.', 'success');
             this.handleCancel(); // Clear the form for the next use
         })

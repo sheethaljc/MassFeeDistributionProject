@@ -31,16 +31,4 @@ public with sharing class MassClientFeeDistributionDAO {
                                                      WHERE Id = :recordId LIMIT 1];
         return distributions.isEmpty() ? null : distributions[0];
     }
-
-    /**
-     * New method to insert a single Payee Distribution record.
-     */
-    public void insertPayeeDistribution(Payee_Distribution__c distribution) {
-        try {
-            insert distribution;
-        } catch (DmlException e) {
-            System.debug('DML Exception: ' + e.getMessage());
-            throw new AuraHandledException('Error inserting Payee Distribution: ' + e.getMessage());
-        }
-    }
 }
