@@ -3,18 +3,6 @@ public with sharing class MassClientFeeDistributionDAO {
     public List<Dealer_Product__c> getDealerProducts() {
         return [SELECT Id, Name, Fee_Type__c FROM Dealer_Product__c];
     }
-
-    /**
-     * Corrected: Uses a static SOQL query with a bind variable.
-     * This is secure and the recommended approach.
-     */
-    public List<Account> searchPayees(String searchTerm) {
-        String likeTerm = '%' + searchTerm + '%';
-        return [SELECT Id, Name, AccountNumber FROM Account
-                WHERE Name LIKE :likeTerm OR AccountNumber LIKE :likeTerm
-                ORDER BY Name ASC LIMIT 10];
-    }
-    
     /**
      * New method to get a single Account by its ID.
      */

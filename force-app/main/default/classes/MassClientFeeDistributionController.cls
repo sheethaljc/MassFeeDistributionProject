@@ -7,17 +7,6 @@ public with sharing class MassClientFeeDistributionController {
          System.debug('MassClientFeeDistributionController.getInitialData()');
         return dao.getDealerProducts();
     }
-
-    @AuraEnabled(cacheable=true)
-    public static Account getAccountDetailsById(Id accountId) {
-        if (accountId == null) {
-            return null;
-        }
-        System.debug('MassClientFeeDistributionController.getAccountDetailsById()' );
-        System.debug('Account Id : ' + accountId);
-        return dao.getAccountById(accountId);
-    }
-
     /**
      * This method is now called AFTER the record-edit-form saves the record.
      * Its only job is to query the newly created record and its related Payee data
