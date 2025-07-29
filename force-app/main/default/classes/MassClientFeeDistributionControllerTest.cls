@@ -13,7 +13,7 @@ private class MassClientFeeDistributionControllerTest {
         } else {
             // If the picklist has no values, the test cannot proceed with this field.
             // Consider adding a default value or throwing an error.
-            // For this test, we'll proceed, but dependent tests might fail.
+            // For this test, will proceed, but dependent tests might fail.
             System.debug('Warning: Fee_Type__c picklist has no values.');
         }
         
@@ -44,12 +44,12 @@ private class MassClientFeeDistributionControllerTest {
         
         // --- Test the no-argument constructor ---
         // This primarily ensures that it can be instantiated without errors.
-        // If your no-argument constructor sets default values, you'd assert those here.
+        // If no-argument constructor sets default values, you'd assert those here.
         PayeeDistributionWrapper defaultWrapper = new PayeeDistributionWrapper();
 
         // Assert that the object was created (not null)
         System.assertNotEquals(null, defaultWrapper, 'Default constructor should create a non-null object.');
-        // If you had default values, e.g., index = 0, you'd assert:
+        // If had default values, e.g., index = 0, did assert:
         // System.assertEquals(0, defaultWrapper.index, 'Default index should be 0.');
         // Setup specific data for this test
         // 

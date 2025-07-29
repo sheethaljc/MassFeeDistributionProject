@@ -2,7 +2,6 @@ import { LightningElement, track, wire } from 'lwc';
 import getInitialData from '@salesforce/apex/MassClientFeeDistributionController.getInitialData';
 import processDistributions from '@salesforce/apex/MassClientFeeDistributionController.processDistributions';
 import getPayeeDistributionWrapper from '@salesforce/apex/MassClientFeeDistributionController.getPayeeDistributionWrapper';
-import acccountId from "@salesforce/schema/Account.Id";
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const columns = [
@@ -107,8 +106,6 @@ export default class MassClientFeeDistribution extends LightningElement {
 
         // Manually create the fields object to pass to the form submission
         const fields = event.detail.fields;
-        // We can add more fields here if needed for the save operation
-        // For example: fields.Start_Date__c = this.startDateNew;
 
         // If validation passes, submit the form programmatically
         this.template.querySelector('lightning-record-edit-form').submit(fields);
