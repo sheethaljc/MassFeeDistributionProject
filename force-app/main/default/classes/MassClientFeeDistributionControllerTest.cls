@@ -44,7 +44,7 @@ private class MassClientFeeDistributionControllerTest {
         
         // --- Test the no-argument constructor ---
         // This primarily ensures that it can be instantiated without errors.
-        // If no-argument constructor sets default values, you'd assert those here.
+        // If no-argument constructor sets default values, did assert those here.
         PayeeDistributionWrapper defaultWrapper = new PayeeDistributionWrapper();
 
         // Assert that the object was created (not null)
