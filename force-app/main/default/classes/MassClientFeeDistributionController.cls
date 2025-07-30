@@ -8,6 +8,15 @@ public with sharing class MassClientFeeDistributionController {
         return dao.getDealerProducts();
     }
     /**
+     * Method to fetch all Account records that could be dealers.
+     * We might want to filter this further based on your specific "Dealer" criteria (e.g., RecordType, custom field).
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Account> getDealers() {
+        System.debug('MassClientFeeDistributionController.getDealers()');
+        return dao.getDealers();
+    }
+    /**
      * This method is now called AFTER the record-edit-form saves the record.
      * Its only job is to query the newly created record and its related Payee data
      * and return it in the wrapper format for the LWC's data table.
@@ -57,7 +66,7 @@ public with sharing class MassClientFeeDistributionController {
     @AuraEnabled
     public static void processDistributions(
         String classificationCode,
-        List<String> excludedDealerIds, // Currently unused in LWC, but kept for signature
+        List<String> excludedDealerIds,
         String productId,
         String feeType,
         Date endDateOpen,
@@ -71,6 +80,11 @@ public with sharing class MassClientFeeDistributionController {
         System.debug('Processing ' + payeeDistributions.size() + ' distributions for update.');
 
         List<Payee_Distribution__c> distributionsToUpdate = new List<Payee_Distribution__c>();
+
+        String excludedDealerIdsString = '';
+        if (excludedDealerIds != null && !excludedDealerIds.isEmpty()) {
+            excludedDealerIdsString = String.join(excludedDealerIds, ',');
+        }
 
         for (PayeeDistributionWrapper wrapper : payeeDistributions) {
             System.debug('Updating Payee Distribution: ' + wrapper.payeeDistributionRecordId);
@@ -87,7 +101,10 @@ public with sharing class MassClientFeeDistributionController {
                 Fee_Amount__c = feeAmountNew,
                 // These two fields are already set, but setting them again does no harm
                 Payee__c = wrapper.payeeId, // This is the Account Id (String)
-                Allocation_Percentage__c = wrapper.allocationPercentage
+                Allocation_Percentage__c = wrapper.allocationPercentage,
+                // Save the excluded dealer IDs string to the new field
+                Excluded_Dealer_Ids__c = excludedDealerIdsString
+
             ));
         }
 

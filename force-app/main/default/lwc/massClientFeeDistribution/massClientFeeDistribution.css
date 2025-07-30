@@ -1,5 +1,1 @@
 /* massClientFeeDistribution.css */
-:host lightning-card [slot="footer"] {
-    border-top: none;
-    /* Or you can use border-top: 0; */
-}

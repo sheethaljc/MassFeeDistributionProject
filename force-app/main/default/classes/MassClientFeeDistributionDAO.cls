@@ -4,6 +4,13 @@ public with sharing class MassClientFeeDistributionDAO {
         return [SELECT Id, Name, Fee_Type__c FROM Dealer_Product__c];
     }
     /**
+     * Method to fetch all Account records that could be dealers.
+     * We might want to filter this further based on your specific "Dealer" criteria (e.g., RecordType, custom field).
+     */
+    public List<Account> getDealers() {
+        return [SELECT Id, Name, AccountNumber FROM Account Order BY Name ASC];
+    }
+    /**
      * New method to get a single Account by its ID.
      */
     public Account getAccountById(Id accountId) {
