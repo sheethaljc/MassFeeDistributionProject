@@ -23,10 +23,13 @@ private class MassClientFeeDistributionControllerTest {
         products.add(new Dealer_Product__c(Name = 'Test Product 2', Fee_Type__c = validFeeType));
         insert products;
         
-        // Create Accounts
+         // Create Accounts (including those for dealers and payees)
         List<Account> accounts = new List<Account>();
         accounts.add(new Account(Name = 'Test Payee Account 1', AccountNumber = 'P123'));
         accounts.add(new Account(Name = 'Test Payee Account 2', AccountNumber = 'P456'));
+        accounts.add(new Account(Name = 'Test Dealer A', AccountNumber = 'D001')); 
+        accounts.add(new Account(Name = 'Test Dealer B', AccountNumber = 'D002')); 
+        accounts.add(new Account(Name = 'Test Dealer C', AccountNumber = 'D003')); 
         insert accounts;
     }
     
@@ -80,33 +83,53 @@ private class MassClientFeeDistributionControllerTest {
         
         Payee_Distribution__c dist1 = new Payee_Distribution__c(Payee__c = payee1.Id, Allocation_Percentage__c = 75);
         insert dist1;
+        
+        // Query test dealer accounts for exclusion
+        List<Account> testDealers = [SELECT Id FROM Account WHERE Name IN ('Test Dealer A', 'Test Dealer B') ORDER BY Name ASC];
+        List<String> excludedDealerIds = new List<String>();
+        for(Account acc : testDealers) {
+            excludedDealerIds.add(acc.Id);
+        }
+        String expectedExcludedDealerIdsString = String.join(excludedDealerIds, ',');
+
 
         List<PayeeDistributionWrapper> wrappers = new List<PayeeDistributionWrapper>();
         wrappers.add(new PayeeDistributionWrapper(1, 'Test Payee Account 1', payee1.Id, 75, 'P123', dist1.Id));
 
         String classificationCode = 'Test-Class-001';
-        Date testDate = Date.today();
+        Date testStartDate = Date.today(); // Use valid dates
+        Date testEndDate = Date.today().addDays(30);
 
         Test.startTest();
         MassClientFeeDistributionController.processDistributions(
             classificationCode,
-            new List<String>(),
+            excludedDealerIds, // Pass the list of excluded dealer IDs
             product.Id,
-            product.Fee_Type__c, // Use the valid fee type from the test data
-            testDate,
-            testDate.addDays(30),
-            null,
-            null,
-            500.00,
+            product.Fee_Type__c,
+            null, // endDateOpen (not used in this update scenario)
+            testStartDate,
+            testEndDate,
+            null, // feeAmountEnd (not used in this update scenario)
+            500.00, // feeAmountNew
             wrappers
         );        
         Test.stopTest();
 
+
         // Verification
-        Payee_Distribution__c updatedDist = [SELECT Id, Classification_Code__c, Product__c, Fee_Amount__c FROM Payee_Distribution__c WHERE Id = :dist1.Id];
+        Payee_Distribution__c updatedDist = [SELECT Id, Classification_Code__c, Product__c, Fee_Amount__c, Start_Date__c, End_Date__c, Name, Excluded_Dealer_Ids__c, Fee_Type__c FROM Payee_Distribution__c WHERE Id = :dist1.Id];
+ 		
         System.assertEquals(classificationCode, updatedDist.Classification_Code__c, 'Classification Code should be updated.');
         System.assertEquals(product.Id, updatedDist.Product__c, 'Product ID should be updated.');
+        System.assertEquals(product.Fee_Type__c, updatedDist.Fee_Type__c, 'Fee Type should be updated.');
         System.assertEquals(500.00, updatedDist.Fee_Amount__c, 'Fee Amount should be updated.');
+        System.assertEquals(testStartDate, updatedDist.Start_Date__c, 'Start Date should be updated.');
+        System.assertEquals(testEndDate, updatedDist.End_Date__c, 'End Date should be updated.');
+        System.assertEquals(classificationCode, updatedDist.Name, 'Name should be updated to Classification Code.');
+        System.assertEquals(expectedExcludedDealerIdsString, updatedDist.Excluded_Dealer_Ids__c, 'Excluded Dealer IDs field should contain the comma-separated string of provided IDs.');
+
+        // Verify that no new records were created if wrappers only contained existing IDs
+        System.assertEquals(1, [SELECT COUNT() FROM Payee_Distribution__c], 'Only one Payee_Distribution__c record should exist after update.');
     }
     
     
@@ -121,9 +144,37 @@ private class MassClientFeeDistributionControllerTest {
         }
     }
     
+     /**
+     * Test case for the getDealers method.
+     * Verifies that the method returns the expected Account records (dealers).
+     */
     @isTest
-    static void testValidConstructor() {
+    static void testGetDealers_Success() {
+        Test.startTest();
+        List<Account> resultDealers = MassClientFeeDistributionController.getDealers();
+        Test.stopTest();
+
+        // Using System.assert for null check as previously corrected
+        System.assert(resultDealers != null, 'The result list should not be null.');
+
+        List<String> expectedDealerNames = new List<String>();
+        expectedDealerNames.add('Test Dealer A');
+        expectedDealerNames.add('Test Dealer B');
+        expectedDealerNames.add('Test Dealer C');
+        expectedDealerNames.sort();
         
+         // Extract actual dealer names from the result
+        List<String> actualDealerNames = new List<String>();
+        for (Account dealer : resultDealers) {
+            actualDealerNames.add(dealer.Name);
+        }
+		// Verify that all expected dealer names are present in the actual returned names.
+        // This allows for 'resultDealers' to contain additional dealers not explicitly defined in 'expectedDealerNames'.
+        Set<String> expectedNamesSet = new Set<String>(expectedDealerNames);
+        Set<String> actualNamesSet = new Set<String>(actualDealerNames);
+        
+        System.assert(actualNamesSet.containsAll(expectedNamesSet), 'The returned dealers should contain all expected dealer names.');
+
     }
     
     // Helper to get a fake Id for negative testing
